@@ -1,0 +1,3 @@
+[submodule "vendor/config"]
+	path = vendor/config
+	url = git://github.com/ejhayes/cfconfig.git
