@@ -103,5 +103,7 @@ component {
         
         // and the reference to it
         EntityDelete(EntityLoadByPK("Files",arguments.id));
+        
+        return true;
     }
 }
