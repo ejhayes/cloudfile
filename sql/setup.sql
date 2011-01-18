@@ -1,0 +1,32 @@
+-- Setup the tables used by CloudFile
+-- NOTE: You will need to have a functioning DSN pointing at the schema owner for this to work
+CREATE TABLE BUCKETS
+(
+  ID    INTEGER,
+  NAME  VARCHAR2(50 BYTE)                       NOT NULL
+);
+
+ALTER TABLE BUCKETS ADD (
+  PRIMARY KEY(ID),
+  UNIQUE (NAME)
+);
+
+CREATE TABLE BUCKET_FILES
+(
+  ID             VARCHAR2(50 BYTE),
+  BUCKET_ID      INTEGER                        NOT NULL,
+  FILENAME       VARCHAR2(100 BYTE)             NOT NULL,
+  FILESIZE       INTEGER                        NOT NULL,
+  CREATED_DATE   DATE                           NOT NULL,
+  ACCESSED_DATE  DATE                           NOT NULL,
+  DISPLAY_COUNT  INTEGER                        NOT NULL
+);
+
+CREATE UNIQUE INDEX BUCKET_FILENAME_UK ON BUCKET_FILES(BUCKET_ID, FILENAME);
+
+ALTER TABLE BUCKET_FILES ADD (
+  PRIMARY KEY(ID),
+  CONSTRAINT BUCKET_FILENAME_UK UNIQUE (BUCKET_ID, FILENAME)
+);
+
+ALTER TABLE BUCKET_FILES ADD (FOREIGN KEY (BUCKET_ID) REFERENCES BUCKETS (ID));
