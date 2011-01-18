@@ -34,7 +34,7 @@ component {
         if( arguments.bucket == "" ){
             return ormExecuteQuery("select name from Buckets");
         } else {
-            return EntityLoad("buckets", {"name" = arguments.bucket});
+            return EntityLoad("buckets", {"name" = LCase(arguments.bucket)});
         }
     }
     
@@ -75,20 +75,33 @@ component {
     
     // DELETE
     function removeBucket(required string bucket){
-        var b = EntityLoad("buckets",{"name" = arguments.bucket},true);
-        var f = b.getFiles();
+        var b = EntityLoad("buckets",{"name" = LCase(arguments.bucket)},true);
+        
+        // if the bucket doesn't exist, return normally
+        if( isNull(b) ) return true;
+        
+        // otherwise continue on normally
+        local.f = b.getFiles();
         
         for(i=1; i<= ArrayLen(f); i++){
             // remove each associated file from the file system
-            //FileDelete("#getStorage()#\#f[i].getId()#");
-            EntityLoadByPK("Files",f[i].getId());
+            removeItem(f[i].getId());
         }
+        
+        // perform all the necessary writes before we attempt to remove the bucket
+        ormFlush();
         
         // remove the bucket from the db (cascade is set to remove children on deletion)
         EntityDelete(b);
+        
+        return true;
     }
     
     function removeItem(required string id){
-    
+        // remove the file
+        FileDelete("#getStorage()#\#arguments.id#");
+        
+        // and the reference to it
+        EntityDelete(EntityLoadByPK("Files",arguments.id));
     }
 }

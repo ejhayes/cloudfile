@@ -46,6 +46,9 @@ component {
                 case "removeBucket":
                     ret = this.server.removeBucket(argumentCollection=form);
                     break;
+                case "removeItem":
+                    ret = this.server.removeItem(argumentCollection=form);
+                    break;
                 case "getContents":
                     ret = this.server.getContents(argumentCollection=form);
                     break;
