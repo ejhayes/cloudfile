@@ -77,8 +77,13 @@ component {
                     local.f = this.server.get(argumentCollection=url);
                     local.mime = getPageContext().getServletContext().getMimeType(f.FILENAME);
                     
+                    // in some cases, we may just want to render a file as plaintext
+                    if( isNull(mime) && listContains("sql",LCase(listLast(f.FILENAME,"."))) ){
+                        mime = "text/plain";
+                    }
+                    
                     // make inline if we have the appropriate mimetype, or just make it an attachment
-                    if(mime != ""){
+                    if( !isNull(mime) and !StructKeyExists(url, "forcedownload") ){
                         response.setContentType(mime);
                         response.setHeader("Content-Disposition","inline;filename=#f.FILENAME#");
                     } else {

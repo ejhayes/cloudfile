@@ -20,6 +20,8 @@
             $(function(){
                 // delete functionality without page refreshing
                 $(".removeItem").bind("click", function(){
+                    if( !confirm("Are you sure you want to delete this item?  You cannot undo this!") ) return false;
+                    
                     $.ajax({
                         type:'POST',
                         context: $('#' + this.id).parent().parent(),
@@ -41,6 +43,8 @@
                 });
                 
                 $(".removeBucket").bind("click", function(){
+                    if( !confirm("Are you sure you want to delete the bucket '" + this.name + "' and all associated content?  You cannot undo this!") ) return false;
+                    
                     $.ajax({
                         type:'POST',
                         url:'<cfoutput>#c.methodLink("removeBucket")#</cfoutput>',
@@ -62,18 +66,22 @@
                 });
                 
                 $("#addBucket").bind("click", function(){
+                    // don't let the user enter bad data
+                    var b = prompt('enter a bucket name');
+                    if(b=="") return false;
+                    
                     $.ajax({
                         type:'POST',
                         url:'<cfoutput>#c.methodLink("addBucket")#</cfoutput>',
                         data: {
-                            bucket: prompt('enter a bucket name'),
+                            bucket: b,
                         },
                         success: function(data, textStatus) {
                             if(data.success){
                                 // redirect back to the main page
                                 window.location = '?' + this.data;
                             } else {
-                                alert(data.error_message);
+                                alert(data.error);
                             }
                         },
                         dataType: "json"
@@ -83,19 +91,22 @@
                 });
                 
                 $(".renameBucket").bind("click", function(){
+                    var n = prompt('change name to what');
+                    if(n=="") return false;
+                    
                     $.ajax({
                         type:'POST',
                         url:'<cfoutput>#c.methodLink("renameBucket")#</cfoutput>',
                         data: {
                             oldName: this.name,
-                            newName: prompt('change name to what'),
+                            newName: n,
                         },
                         success: function(data, textStatus) {
                             if(data.success){
                                 // redirect back to the main page
                                 window.location = '.';
                             } else {
-                                alert(data.error_message);
+                                alert(data.error);
                             }
                         },
                         dataType: "json"
@@ -201,7 +212,7 @@
             <h1>Buckets ( <a id="addBucket" href="#">add new</a> )</h1>
             <ul>
                 <cfloop array="#c.getContents().result#" index="i"><cfoutput>
-                    <li><a href="##" name="#i#" class="removeBucket">[x]</a> <a href="?bucket=#i#">#i#</a> - <a href="##" class="renameBucket" name="#i#">rename</a></li>
+                    <li><a href="?bucket=#i#">#i# - view contents</a> - <a href="##" class="renameBucket" name="#i#">rename</a> <a href="##" name="#i#" class="removeBucket">delete</a></li>
                 </cfoutput></cfloop>
             </ul>
         </cfif>
