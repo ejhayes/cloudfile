@@ -1,3 +1,6 @@
 [submodule "vendor/config"]
 	path = vendor/config
 	url = git://github.com/ejhayes/cfconfig.git
+[submodule "vendor/file-uploader"]
+	path = vendor/file-uploader
+	url = git://github.com/valums/file-uploader.git

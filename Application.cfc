@@ -43,6 +43,12 @@ component {
             var ret = "";
             
             switch(url.method){
+                case "addBucket":
+                    ret = this.server.addBucket(argumentCollection=form).getName();
+                    break;
+                case "renameBucket":
+                    ret = this.server.renameBucket(argumentCollection=form);
+                    break;
                 case "removeBucket":
                     ret = this.server.removeBucket(argumentCollection=form);
                     break;
@@ -55,6 +61,9 @@ component {
                 case "put":
                     form.content = BinaryDecode(form.content,"Base64");
                     ret = this.server.put(argumentCollection=form);
+                    break;
+                case "putXHR":
+                    ret = this.server.putXHR(url.bucket, url.qqfile);
                     break;
                 case "get":
                     // do nothing
@@ -85,7 +94,9 @@ component {
                     out.close();
                     return; 
                 default:
-                    ret = {"success" = false, error_message = "invalid method."};
+                    // if it isn't defined, then just return failure
+                    WriteOutput(SerializeJSON({"success" = false, "error" = "invalid method."}));
+                    return;
             }
             
             // write the output to screen
@@ -93,7 +104,7 @@ component {
             
         } catch(java.lang.Exception e) {
             // unforeseen errors
-            WriteOutput(SerializeJSON({"success" = false, "error_message" = e.message}));
+            WriteOutput(SerializeJSON({"success" = false, "error" = e.message}));
         }
     }
 }

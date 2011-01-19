@@ -36,7 +36,11 @@ component extends="rest" {
     }
     
     // HELPERS
-    string function link(string id){
-        return "#getEndpoint()#?method=show&id=#arguments.id#";
+    string function link(string id=""){
+        return "#methodLink('show')#&id=#arguments.id#";
     };
+    
+    string function methodLink(required string method){
+        return "#getEndpoint()#?method=#arguments.method#";
+    }
 }

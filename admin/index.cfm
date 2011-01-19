@@ -7,6 +7,11 @@
     <head>
         <title>CloudFile Admin Console</title>
         <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script> 
+        <!-- File Uploading -->
+        <link rel="stylesheet"  href="../vendor/file-uploader/client/fileuploader.css" type="text/css" />
+        <script type="text/javascript" src="../vendor/file-uploader/client/fileuploader.js"></script>
+        
+        <!-- Table sorting -->
         <link rel="stylesheet"  href="../vendor/tablesorter/tablesorter.css" type="text/css" />
         <script type="text/javascript" src="../vendor/tablesorter/jquery.tablesorter.min.js"></script>
         <script type="text/javascript" src="../vendor/tablesorter/jquery.metadata.js"></script>
@@ -18,7 +23,7 @@
                     $.ajax({
                         type:'POST',
                         context: $('#' + this.id).parent().parent(),
-                        url:'<cfoutput>#c.getEndpoint()#?method=removeItem</cfoutput>',
+                        url:'<cfoutput>#c.methodLink("removeItem")#</cfoutput>',
                         data: {
                             id: this.id,
                         },
@@ -38,7 +43,7 @@
                 $(".removeBucket").bind("click", function(){
                     $.ajax({
                         type:'POST',
-                        url:'<cfoutput>#c.getEndpoint()#?method=removeBucket</cfoutput>',
+                        url:'<cfoutput>#c.methodLink("removeBucket")#</cfoutput>',
                         data: {
                             bucket: this.name,
                         },
@@ -59,7 +64,7 @@
                 $("#addBucket").bind("click", function(){
                     $.ajax({
                         type:'POST',
-                        url:'<cfoutput>#c.getEndpoint()#?method=addBucket</cfoutput>',
+                        url:'<cfoutput>#c.methodLink("addBucket")#</cfoutput>',
                         data: {
                             bucket: prompt('enter a bucket name'),
                         },
@@ -80,7 +85,7 @@
                 $(".renameBucket").bind("click", function(){
                     $.ajax({
                         type:'POST',
-                        url:'<cfoutput>#c.getEndpoint()#?method=renameBucket</cfoutput>',
+                        url:'<cfoutput>#c.methodLink("renameBucket")#</cfoutput>',
                         data: {
                             oldName: this.name,
                             newName: prompt('change name to what'),
@@ -98,6 +103,53 @@
                     
                     return false;
                 });
+                
+                function addFile(id, filename, showMethod, removeClass){
+                    $(".tablesorter").find('tbody')
+                        .append($('<tr>')
+                            .append($('<td>')
+                                .append($('<a>')
+                                    .attr('href', showMethod)
+                                    .attr('target', '_blank')
+                                    .text(filename)
+                                )
+                            )
+                            .append($('<td>')
+                                .text('?')
+                            )
+                            .append($('<td>')
+                                .text('Now')
+                            )
+                            .append($('<td>')
+                                .text('Now')
+                            )
+                            .append($('<td>')
+                                .text('1')
+                            )
+                            .append($('<td>')
+                                .append($('<a>')
+                                    .attr('href', '#')
+                                    .attr('id', id)
+                                    .attr('class', removeClass)
+                                    .text('DELETE')
+                                )
+                            )
+                        );
+                }
+                
+                var uploader = new qq.FileUploader({
+                    element: $('#file-uploader')[0],
+                    action: '<cfoutput>#c.methodLink("putXHR")#</cfoutput>',
+                    params: {
+                        bucket: $('#file-uploader').attr('name')
+                    },
+                    onComplete: function(id, fileName, responseJSON){
+                        // add the item to the table!
+                        if(responseJSON.success) {
+                            addFile(responseJSON.result, fileName, '<cfoutput>#c.link()#</cfoutput>' + responseJSON.result, 'removeItem');
+                        }
+                    }
+                });
 
 
             });
@@ -110,6 +162,15 @@
             <!--- Show bucket info --->
             <cfset r = c.getContents(url.bucket).result.files />
             <h1>Contents of <cfoutput>#url.bucket#</cfoutput> ( <a class="removeBucket" name="<cfoutput>#url.bucket#</cfoutput>" href="#">remove bucket</a> )</h1>
+
+            <!-- Add items to the bucket -->
+            <div id="file-uploader" name="<cfoutput>#url.bucket#</cfoutput>">       
+                <noscript>          
+                    <p>Please enable JavaScript to use file uploader.</p>
+                    <!-- or put a simple form for upload here -->
+                </noscript>         
+            </div>
+            
             <table class="tablesorter" width="100%">
                 <thead>
                     <tr>

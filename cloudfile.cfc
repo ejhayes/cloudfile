@@ -34,11 +34,36 @@ component {
         if( arguments.bucket == "" ){
             return ormExecuteQuery("select name from Buckets");
         } else {
-            return EntityLoad("buckets", {"name" = LCase(arguments.bucket)});
+            return EntityLoad("buckets", {"name" = LCase(arguments.bucket)},true);
         }
     }
     
     // SETTERS
+    function addBucket(required string bucket){
+        var b = EntityLoad("Buckets",{"name" = LCase(arguments.bucket)},true);
+        
+        // create the bucket if it doesn't exist
+        if( isNull(b) ){
+            b = EntityNew("Buckets");
+            b.setName(LCase(arguments.bucket));
+            EntitySave(b);
+        }
+        
+        // persist it
+        ormFlush();
+        
+        return b;
+    }
+    
+    function renameBucket(required string oldName, required string newName){
+        var b = EntityLoad("Buckets",{"name" = LCase(arguments.oldName)},true);
+        b.setName(arguments.newName);
+        EntitySave(b);
+        ormFlush();
+        
+        return true;
+    }
+    
     string function put(required string bucket, required string filename, required binary content){
         /* 
         the following atomic operation must take place when we perform a put operation:
@@ -49,14 +74,7 @@ component {
         if the following does not occur, then we will have an inconsistent state
         */
         var f = EntityNew("Files");
-        var b = EntityLoad("Buckets",{"name" = LCase(arguments.bucket)},true);
-        
-        // create the bucket if it doesn't exist
-        if( isNull(b) ){
-            b = EntityNew("Buckets");
-            b.setName(LCase(arguments.bucket));
-            EntitySave(b);
-        }
+        var b = addBucket(arguments.bucket);
         
         // now prepare the file object
         f.setBucket(b);
@@ -71,6 +89,11 @@ component {
         FileWrite("#getStorage()#\#f.getId()#",arguments.content);
         
         return f.getId();
+    }
+    
+    function putXHR(required string bucket, required string qqfile){
+        var requestData = getHttpRequestData();
+        return put(arguments.bucket, arguments.qqfile, requestData.content);
     }
     
     // DELETE
